@@ -27,6 +27,7 @@ SOFTWARE.
 | `cities.json`           | `locations/hoenn/cities.json`               |
 | `dungeons.json`         | `locations/hoenn/dungeons.json`             |
 | `routes.json`           | `locations/hoenn/routes.json`               |
+| `events.json`           | `items/events.json`                         |
 | `item_mapping.json`     | `scripts/autotracking/item_mapping.lua`     |
 | `location_mapping.json` | `scripts/autotracking/location_mapping.lua` |
 | `setting_mapping.json`  | `scripts/autotracking/setting_mapping.lua`  |
