@@ -111,7 +111,10 @@ class SlotLogic:
     def _add_event_logic(self):
         # update self.items to include event logic
         for event in self.events:
-            if self.is_in_logic(event):
+            # find the event in self.check_dependencies
+            event_name, access_rules = self._get_event_data(event)
+
+            if self.is_in_logic(event_name, self.clean_access_rules(access_rules)):
                 self.items[event["codes"]] = 1
 
 
@@ -198,32 +201,31 @@ class SlotLogic:
         return event_name, access_rules
 
     # util functions
-    def is_in_logic(self, event, untracked=False):
-        # find the event in self.check_dependencies
-        event_name, access_rules = self._get_event_data(event, untracked)
-
+    def clean_access_rules(self, rules):
         # ensure one rule per entry
-        unpacked_rules = []
-        for rule in access_rules:
-            unpacked_rules.extend(rule.split(","))
+        access_rules = []
+        for rule in rules:
+            access_rules.extend(rule.split(","))
 
+        return [r for r in access_rules if not ("flash" in r and self.ignore_flash)]
+
+
+    def is_in_logic(self, event_name, access_rules, untracked=False):
         # check if requirements are in logic
         print(f"Checking {event_name}")
             
-        for rule in unpacked_rules:
-            # check flag to ignore flash logic requirements
-            if "flash" in rule and self.ignore_flash:
-                continue
-            
+        for rule in access_rules:       
             print(f"\t{rule}")
             if rule[0] == "$" or rule[:2] == "[$":
                 # run the appropriate function defined below
                 if not self._exec_func(rule):
                     return False
             elif rule[0] == "@":
+                return NotImplementedError
                 if not self.is_in_logic(rule, untracked=True):
                     return False
             else:
+                return NotImplementedError
                 if not (self.has(rule) or self.is_in_logic(rule)):
                     return False
 
