@@ -200,6 +200,28 @@ class SlotLogic:
 
         return event_name, access_rules
 
+    def _get_event_data_from_name(self, event):
+        event_name = f"{event}_hosted"
+        event_data = False
+        for loc in self.check_dependencies.keys():
+            for check in self.check_dependencies[loc][0]["children"]:
+                for c in check["sections"]:
+                    if c.get("hosted_item") == event_name:
+                        event_data = c
+                        break
+
+                if event_data:
+                    location_data = check
+                    break
+
+        if not event_data:
+            raise ValueError(f"Event {event} could not be located")
+
+        access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
+
+        return event_name, access_rules
+
+
     # util functions
     def clean_access_rules(self, rules):
         # ensure one rule per entry
@@ -221,12 +243,12 @@ class SlotLogic:
                 if not self._exec_func(rule):
                     return False
             elif rule[0] == "@":
-                return NotImplementedError
+                # return NotImplementedError
                 if not self.is_in_logic(rule, untracked=True):
                     return False
             else:
-                return NotImplementedError
-                if not (self.has(rule) or self.is_in_logic(rule)):
+                # return NotImplementedError
+                if not (self.has(rule) or self.is_in_logic(*self._get_event_data_from_name(rule))):
                     return False
 
         return True
