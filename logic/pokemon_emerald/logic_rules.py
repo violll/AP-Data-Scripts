@@ -149,7 +149,7 @@ class SlotLogic:
             case "$mossdeep_access":
                 return self.mossdeep_access()
             case "$seafloor_cavern_access":
-                return self.seafloor_cavern_acces()
+                return self.seafloor_cavern_access()
             case "$sootopolis_access":
                 return self.sootopolis_access()
             case "$sealed_chamber_access":
