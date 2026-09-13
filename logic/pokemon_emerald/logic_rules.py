@@ -32,6 +32,80 @@ class SlotLogic:
     def __init__(self, goal, items, checks, data, ignore_flash=True):
         self.BADGES = {"stone_badge","knuckle_badge","dynamo_badge","heat_badge","balance_badge","feather_badge","mind_badge","rain_badge"}
         self.GYMS = {"defeat_roxanne","defeat_brawly","defeat_wattson","defeat_flannery","defeat_norman","defeat_winona","defeat_tate_and_liza","defeat_juan"}
+        self.HOSTED_ITEMS = {
+            "acro_bike",
+            "aurora_ticket",
+            "balance_badge",
+            "basement_key",
+            "devon_goods",
+            "devon_scope",
+            "dynamo_badge",
+            "eon_ticket",
+            "feather_badge",
+            "go_goggles",
+            "good_rod",
+            "harbor_mail",
+            "heat_badge",
+            "hm01_cut",
+            "hm02_fly",
+            "hm03_surf",
+            "hm04_strength",
+            "hm05_flash",
+            "hm06_rock_smash",
+            "hm07_waterfall",
+            "hm08_dive",
+            "itemfinder",
+            "knuckle_badge",
+            "letter",
+            "mach_bike",
+            "magma_emblem",
+            "meteorite",
+            "mind_badge",
+            "mystic_ticket",
+            "old_rod",
+            "old_sea_map",
+            "pokeblock_case",
+            "rain_badge",
+            "room_1_key",
+            "room_2_key",
+            "room_4_key",
+            "room_6_key",
+            "ss_ticket",
+            "scanner",
+            "stone_badge",
+            "storage_key",
+            "super_rod",
+            "wailmer_pail",
+            "meet_flower_shop_owner",
+            "defeat_roxanne",
+            "recover_devon_goods",
+            "return_devon_goods",
+            "talk_mr_stone",
+            "defeat_brawly",
+            "deliver_letter",
+            "talk_to_dock",
+            "rescue_stern",
+            "defeat_wattson",
+            "magma_steals_meteorite",
+            "defeat_maxie_mt_chimney",
+            "defeat_flannery",
+            "defeat_norman",
+            "defeat_shelly",
+            "wingull_quest_1",
+            "defeat_winona",
+            "release_groudon",
+            "aqua_steals_submarine",
+            "defeat_matt",
+            "wingull_quest_2",
+            "defeat_tate_and_liza",
+            "defeat_maxie_space_center",
+            "steven_gives_dive",
+            "release_kyogre",
+            "defeat_juan",
+            "undo_regi_seal",
+            "defeat_champion",
+            "defeat_steven"
+            }
 
         self.check_dependencies = {}
         for resource in ["cities", "dungeons", "routes"]:
@@ -47,6 +121,7 @@ class SlotLogic:
         self.checks = checks # event flags
         self.data = data
         self.ignore_flash = ignore_flash
+
         self._add_data_flags(data)
         self._add_event_logic()
 
@@ -107,7 +182,6 @@ class SlotLogic:
             self.items["route_118_rails_on"] = 1
 
         
-
     def _add_event_logic(self):
         # update self.items to include event logic
         for event in self.events:
@@ -243,13 +317,18 @@ class SlotLogic:
                 if not self._exec_func(rule):
                     return False
             elif rule[0] == "@":
-                # return NotImplementedError
+                # check whether untracked event is in logic
                 if not self.is_in_logic(rule, untracked=True):
                     return False
             else:
-                # return NotImplementedError
-                if not (self.has(rule) or self.is_in_logic(*self._get_event_data_from_name(rule))):
-                    return False
+                # check whether rule is a hosted item or event
+                is_event = f"{rule}" in [e["codes"] for e in self.events]
+                if is_event:
+                    if not (self.has(rule) or self.is_in_logic(*self._get_event_data_from_name(rule))):
+                        return False
+                else:
+                    if not self.has(rule):
+                        return False
 
         return True
 
