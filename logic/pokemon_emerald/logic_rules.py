@@ -201,9 +201,15 @@ class SlotLogic:
         # find the event in self.check_dependencies
         event_name, access_rules = self._get_event_data(event, untracked)
 
+        # ensure one rule per entry
+        unpacked_rules = []
+        for rule in access_rules:
+            unpacked_rules.extend(rule.split(","))
+
         # check if requirements are in logic
         print(f"Checking {event_name}")
-        for rule in access_rules:
+            
+        for rule in unpacked_rules:
             print(f"\t{rule}")
             if rule[0] == "$" or rule[:2] == "[$":
                 # run the appropriate function defined below
