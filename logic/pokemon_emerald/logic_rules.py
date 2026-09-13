@@ -205,7 +205,7 @@ class SlotLogic:
         print(f"Checking {event_name}")
         for rule in access_rules:
             print(f"\t{rule}")
-            if rule[0] == "$":
+            if rule[0] == "$" or rule[:2] == "[$":
                 # run the appropriate function defined below
                 if not self._exec_func(rule):
                     return False
