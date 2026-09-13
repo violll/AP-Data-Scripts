@@ -29,7 +29,7 @@ import pathlib
 
 
 class SlotLogic:
-    def __init__(self, goal, items, checks, data):
+    def __init__(self, goal, items, checks, data, ignore_flash=True):
         self.BADGES = {"stone_badge","knuckle_badge","dynamo_badge","heat_badge","balance_badge","feather_badge","mind_badge","rain_badge"}
         self.GYMS = {"defeat_roxanne","defeat_brawly","defeat_wattson","defeat_flannery","defeat_norman","defeat_winona","defeat_tate_and_liza","defeat_juan"}
 
@@ -46,6 +46,7 @@ class SlotLogic:
         self.items = items
         self.checks = checks # event flags
         self.data = data
+        self.ignore_flash = ignore_flash
         self._add_data_flags(data)
         self._add_event_logic()
 
@@ -210,6 +211,10 @@ class SlotLogic:
         print(f"Checking {event_name}")
             
         for rule in unpacked_rules:
+            # check flag to ignore flash logic requirements
+            if "flash" in rule and self.ignore_flash:
+                continue
+            
             print(f"\t{rule}")
             if rule[0] == "$" or rule[:2] == "[$":
                 # run the appropriate function defined below
