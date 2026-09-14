@@ -119,7 +119,6 @@ class SlotLogic:
         self.goal = goal
         self.items = items
         self.checks = checks # event flags
-        self.data = data
         self.ignore_flash = ignore_flash
 
         self._add_data_flags(data)
@@ -127,6 +126,10 @@ class SlotLogic:
 
     # internal functions
     def _add_data_flags(self, data):
+        # free fly location
+        free_fly_location = data["slot_data"]["free_fly_location_id"]
+        self.items[f"free_fly_{free_fly_location}"] = 1
+
         # fly requirement
         fly_req = data["slot_data"]["hm_requirements"]["HM02 Fly"]
         if len(fly_req) == 0:
@@ -317,6 +320,7 @@ class SlotLogic:
                 if not self._exec_func(rule):
                     return False
             elif rule[0] == "@":
+                raise NotImplementedError()
                 # check whether untracked event is in logic
                 if not self.is_in_logic(rule, untracked=True):
                     return False
@@ -341,7 +345,7 @@ class SlotLogic:
 
     # access functions
     def free_fly(self, location):
-        return self.data["slot_data"]["free_fly_location_id"] == location and self.fly()
+        return self.items[f"free_fly_{location}"] == 1 and self.fly()
 
 
     def cut(self):
