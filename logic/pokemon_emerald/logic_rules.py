@@ -309,7 +309,7 @@ class SlotLogic:
         return [r for r in access_rules if not ("flash" in r and self.ignore_flash)]
 
 
-    def is_in_logic(self, event_name, access_rules, untracked=False):
+    def is_in_logic(self, event_name, access_rules):
         # check if requirements are in logic
         print(f"Checking {event_name}")
             
@@ -321,7 +321,7 @@ class SlotLogic:
                     return False
             elif rule[0] == "@":
                 # check whether untracked event is in logic
-                if not self.is_in_logic(*self._get_event_data(rule, untracked=True), untracked=True):
+                if not self.is_in_logic(*self._get_event_data(rule, untracked=True)):
                     return False
             else:
                 # check whether rule is a hosted item or event
