@@ -278,7 +278,7 @@ class SlotLogic:
         return event_name, access_rules
 
     def _get_event_data_from_name(self, event, untracked=False):
-        if untracked == False:
+        if untracked:
             event_name = event.title()
             name_entry_to_check = "name"
         else:
