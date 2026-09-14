@@ -264,18 +264,13 @@ class SlotLogic:
                 for c in check["sections"]:
                     if c.get(name_entry_to_check,"") == event_name:
                         event_data = c
-                        break
+                        location_data = check
+                        access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
+                        
+                        return event_name, access_rules
 
-                if event_data:
-                    location_data = check
-                    break
+        raise ValueError(f"Event {event_name} at {event_location} could not be found")
 
-        if not event_data:
-            raise ValueError(f"Event {event_name} at {event_location} could not be found")
-
-        access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
-
-        return event_name, access_rules
 
     def _get_event_data_from_name(self, event, untracked=False):
         if untracked:
@@ -291,19 +286,12 @@ class SlotLogic:
                 for c in check["sections"]:
                     if c.get(name_entry_to_check) == event_name:
                         event_data = c
-                        break
+                        location_data = check
+                        access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
+                        
+                        return event_name, access_rules
 
-                if event_data:
-                    location_data = check
-                    break
-
-        if not event_data:
-            raise ValueError(f"Event {event} could not be located")
-
-        access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
-
-        return event_name, access_rules
-
+        raise ValueError(f"Event {event} could not be located")
 
     # util functions
     def clean_access_rules(self, rules):
