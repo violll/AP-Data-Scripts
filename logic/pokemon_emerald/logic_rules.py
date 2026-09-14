@@ -277,13 +277,19 @@ class SlotLogic:
 
         return event_name, access_rules
 
-    def _get_event_data_from_name(self, event):
-        event_name = f"{event}_hosted"
+    def _get_event_data_from_name(self, event, untracked=False):
+        if untracked == False:
+            event_name = event.title()
+            name_entry_to_check = "name"
+        else:
+            event_name = f"{event}_hosted"
+            name_entry_to_check = "hosted_item"
+
         event_data = False
         for loc in self.check_dependencies.keys():
             for check in self.check_dependencies[loc][0]["children"]:
                 for c in check["sections"]:
-                    if c.get("hosted_item") == event_name:
+                    if c.get(name_entry_to_check) == event_name:
                         event_data = c
                         break
 
