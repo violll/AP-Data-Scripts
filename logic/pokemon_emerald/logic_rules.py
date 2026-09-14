@@ -320,9 +320,8 @@ class SlotLogic:
                 if not self._exec_func(rule):
                     return False
             elif rule[0] == "@":
-                raise NotImplementedError()
                 # check whether untracked event is in logic
-                if not self.is_in_logic(rule, untracked=True):
+                if not self.is_in_logic(*self._get_event_data(rule, untracked=True), untracked=True):
                     return False
             else:
                 # check whether rule is a hosted item or event
