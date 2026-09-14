@@ -29,7 +29,7 @@ import pathlib
 
 
 class SlotLogic:
-    def __init__(self, goal, items, checks, data, ignore_flash=True):
+    def __init__(self, goal, items, checks, data, ignore_optional_logic=True):
         self.BADGES = {"stone_badge","knuckle_badge","dynamo_badge","heat_badge","balance_badge","feather_badge","mind_badge","rain_badge"}
         self.GYMS = {"defeat_roxanne","defeat_brawly","defeat_wattson","defeat_flannery","defeat_norman","defeat_winona","defeat_tate_and_liza","defeat_juan"}
         self.HOSTED_ITEMS = {
@@ -119,7 +119,7 @@ class SlotLogic:
         self.goal = goal
         self.items = items
         self.checks = checks # event flags
-        self.ignore_flash = ignore_flash
+        self.ignore_optional_logic = ignore_optional_logic
 
         self._add_data_flags(data)
         self._add_event_logic()
@@ -306,7 +306,7 @@ class SlotLogic:
         for rule in rules:
             access_rules.extend(rule.split(","))
 
-        return [r for r in access_rules if not ("flash" in r and self.ignore_flash)]
+        return access_rules
 
 
     def is_in_logic(self, event_name, access_rules):
@@ -315,10 +315,16 @@ class SlotLogic:
             
         for rule in access_rules:       
             print(f"\t{rule}")
-            if rule[0] == "$" or rule[:2] == "[$":
+            if rule[0] == "[" and self.ignore_optional_logic:
+                continue
+            elif rule[0] == "[": 
+                rule = rule[1:-1]
+
+            if rule[0] == "$":
                 # run the appropriate function defined below
                 if not self._exec_func(rule):
                     return False
+                
             elif rule[0] == "@":
                 # check whether untracked event is in logic
                 if not self.is_in_logic(*self._get_event_data(rule, untracked=True)):
