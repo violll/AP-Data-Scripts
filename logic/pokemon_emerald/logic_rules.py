@@ -246,6 +246,7 @@ class SlotLogic:
     def _get_event_data(self, event, untracked=False):
         if untracked:
             loc, event_location, event_name = event[1:].split("/")
+            loc = loc.lower()
             name_entry_to_check = "name"
             
         else:
