@@ -353,6 +353,44 @@ class SlotLogic:
         else:
             return self.items.get(item, 0) >= amount
 
+    def check_goal(self):
+        match self.goal["goal"]:
+            case "norman":
+                if self.has_norman_req():
+                    # is go mode
+                    return True
+                else:
+                    # is not go mode
+                    # return progress to goal
+                    return False
+
+            case "champion":
+                if self.has_e4_req() and self.e4_access():
+                    # is go mode
+                    return True
+                else:
+                    # is not go mode
+                    # return progress to goal
+                    return False
+            
+            case "steven":
+                if self.has_steven_req() and self.e4_access():
+                    # is go mode
+                    return True
+                else:
+                    # is not go mode
+                    # return progress to goal
+                    return False
+
+            case "legendary_hunt":
+                if self.has_legendary_req():
+                    # is go mode
+                    return True
+                else:
+                    # is not go mode
+                    # return progress to goal
+                    return False
+
     # access functions
     def free_fly(self, location):
         return self.items[f"free_fly_{location}"] == 1 and self.fly()
@@ -438,6 +476,34 @@ class SlotLogic:
                 req_count += 1
 
         return req_count >= req
+
+    
+    def has_steven_req(self):
+        return self.has_e4_req()
+
+
+    def has_steven_logic(self):
+        return self.surf() and self.waterfall() and self.fallarbor_access() \
+            and self.e4_access()
+
+
+    def has_legendary_req(self):
+        legendary_count = self.goal["legendary_hunt_count"]
+        req_count = len(self.has_legendary_logic())
+
+        return req_count >= legendary_count
+
+
+    def has_legendary_logic(self):
+        legendary_event = "catch" if self.goal["legendary_hunt_catch"] else "defeat"
+        valid_encounters = self.goal["allowed_legendary_hunt_encounters"]
+
+        legends_in_logic = []
+        for encounter in valid_encounters:
+            if self.is_in_logic(*self._get_event_data_from_name(f"{legendary_event} {encounter}", untracked=True)):
+                legends_in_logic.append(encounter)
+
+        return legends_in_logic
 
 
     def pass_route_110(self):
