@@ -190,7 +190,7 @@ class SlotLogic:
             # find the event in self.check_dependencies
             event_name, access_rules = self._get_event_data(event)
 
-            if self.is_in_logic(event_name, self.clean_access_rules(access_rules)):
+            if self.is_in_logic(event_name, access_rules):
                 self.items[event["codes"]] = 1
 
 
@@ -315,6 +315,7 @@ class SlotLogic:
 
 
     def is_in_logic(self, event_name, access_rules):
+        access_rules = self.clean_access_rules(access_rules)
         # check if requirements are in logic
         print(f"Checking {event_name}")
             
