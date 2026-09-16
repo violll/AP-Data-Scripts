@@ -1,8 +1,9 @@
 import argparse
-from collections import Counter
 import enum
 import json
+from collections import Counter
 from pathlib import Path
+
 from logic.pokemon_emerald.logic_rules import SlotLogic
 
 
@@ -52,7 +53,7 @@ class LogicRouter:
 
         if not (slot_data_path.is_file() and game_data_path.is_file() and slot_config_path.is_file()):
             # TODO is this the correct arg type?
-            raise ValueError(f"Room data does not exist. Run get-room-data.py to generate it")
+            raise ValueError("Room data does not exist. Run get-room-data.py to generate it")
 
         if not goal_data_path.is_file():
             raise ValueError(f"Goal data={goal_data_path} does not exist. Run create-goal-data.py to generate it")
@@ -106,9 +107,6 @@ class LogicRouter:
 
             # get progression items 
             items = self._get_slot_items(self.slot_data["player_items_received"][slot], ItemFlag.ITEM_LOGIC)
-
-            # get event flags from checks
-            events = self._get_events(self.slot_data["player_checks_done"][slot])
 
             # get config
             config = self._get_slot_config(slot)

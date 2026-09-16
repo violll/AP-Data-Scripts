@@ -120,6 +120,38 @@ class SlotLogic:
         self.items = items
         self.ignore_optional_logic = ignore_optional_logic
 
+        self._exec_method = {
+            "$surf": self.surf(),
+            "$waterfall": self.waterfall(),
+            "$strength": self.strength(),
+            "[$flash|cave]": self.flash("cave"),
+            "[$flash|road]": self.flash("road"),
+
+            # location | goal access logic
+            "$dewford_access": self.dewford_access(),
+            "$slateport_access": self.slateport_access(),
+            "$mauville_access": self.mauville_access(),
+            "$fallarbor_access": self.fallarbor_access(),
+            "$mt_chimney_access": self.mt_chimney_access(),
+            "$lavaridge_access": self.lavaridge_access(),
+            "$lilycove_access": self.lilycove_access(),
+            "$has_norman_req": self.has_norman_req(),
+            "$route_119_access": self.route_119_access(),
+            "$route_124_access": self.route_124_access(),
+            "$fortree_access": self.fortree_access(),
+            "$aqua_hideout_access": self.aqua_hideout_access(),
+            "$mossdeep_access": self.mossdeep_access(),
+            "$seafloor_cavern_access": self.seafloor_cavern_access(),
+            "$sootopolis_access": self.sootopolis_access(),
+            "$sealed_chamber_access": self.sealed_chamber_access(),
+            "$e4_access": self.e4_access(),
+            "$terra_cave_access": self.terra_cave_access(),
+            "$island_cave_access": self.island_cave_access(),
+            "$desert_ruins_access": self.desert_ruins_access(),
+            "$ancient_tomb_access": self.ancient_tomb_access(),
+            "$marine_cave_access": self.marine_cave_access()
+            }
+
         self._add_data_flags(data)
         self._add_event_logic()
 
@@ -193,57 +225,7 @@ class SlotLogic:
             if self.is_in_logic(event_name, access_rules):
                 self.items[event["codes"]] = 1
 
-
-    def _exec_func(self, f):
-        match f:
-            # hm logic
-            case "$surf":
-                return self.surf()
-            case "$waterfall":
-                return self.waterfall()
-            case "$strength":
-                return self.strength()
-            case "[$flash|cave]":
-                return self.flash("cave")
-            case "[$flash|road]":
-                return self.flash("road")
-
-            # location | goal access logic
-            case "$dewford_access": 
-                return self.dewford_access()
-            case "$slateport_access":
-                return self.slateport_access()
-            case "$mauville_access":
-                return self.mauville_access()
-            case "$fallarbor_access":
-                return self.fallarbor_access()
-            case "$mt_chimney_access":
-                return self.mt_chimney_access()
-            case "$lavaridge_access":
-                return self.lavaridge_access()
-            case "$lilycove_access":
-                return self.lilycove_access()
-            case "$has_norman_req":
-                return self.has_norman_req()
-            case "$route_119_access":
-                return self.route_119_access()
-            case "$fortree_access":
-                return self.fortree_access()
-            case "$aqua_hideout_access":
-                return self.aqua_hideout_access()
-            case "$mossdeep_access":
-                return self.mossdeep_access()
-            case "$seafloor_cavern_access":
-                return self.seafloor_cavern_access()
-            case "$sootopolis_access":
-                return self.sootopolis_access()
-            case "$sealed_chamber_access":
-                return self.sealed_chamber_access()
-            case "$e4_access":
-                return self.e4_access()
-
-
-    def _get_event_data(self, event, untracked=False):
+    def _get_event_data(self, event: str | dict[str, Any], untracked: bool = False) -> tuple[str, list[str]]:
         if untracked:
             loc, event_location, event_name = event[1:].split("/")
             loc = loc.lower()
@@ -333,7 +315,7 @@ class SlotLogic:
 
             if rule[0] == "$":
                 # run the appropriate function defined below
-                if not self._exec_func(rule):
+                if not self._exec_method[rule]:
                     return False
                 
             elif rule[0] == "@":
