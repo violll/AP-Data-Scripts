@@ -196,10 +196,21 @@ class SlotLogic:
 
     def _exec_func(self, f):
         match f:
-            case "$dewford_access": 
-                return self.dewford_access(),
+            # hm logic
+            case "$surf":
+                return self.surf()
+            case "$waterfall":
+                return self.waterfall()
+            case "$strength":
+                return self.strength()
             case "[$flash|cave]":
                 return self.flash("cave")
+            case "[$flash|road]":
+                return self.flash("road")
+
+            # location | goal access logic
+            case "$dewford_access": 
+                return self.dewford_access()
             case "$slateport_access":
                 return self.slateport_access()
             case "$mauville_access":
@@ -210,16 +221,14 @@ class SlotLogic:
                 return self.mt_chimney_access()
             case "$lavaridge_access":
                 return self.lavaridge_access()
+            case "$lilycove_access":
+                return self.lilycove_access()
             case "$has_norman_req":
                 return self.has_norman_req()
             case "$route_119_access":
                 return self.route_119_access()
             case "$fortree_access":
                 return self.fortree_access()
-            case "$mt_chimney_access":
-                return self.mt_chimney_access()
-            case "$strength":
-                return self.strength()
             case "$aqua_hideout_access":
                 return self.aqua_hideout_access()
             case "$mossdeep_access":
@@ -232,12 +241,7 @@ class SlotLogic:
                 return self.sealed_chamber_access()
             case "$e4_access":
                 return self.e4_access()
-            case "[$flash|road]":
-                return self.flash("road")
-            case "$surf":
-                return self.surf()
-            case "$waterfall":
-                return self.waterfall()
+
 
     def _get_event_data(self, event, untracked=False):
         if untracked:
