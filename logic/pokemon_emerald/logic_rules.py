@@ -29,7 +29,7 @@ import pathlib
 
 
 class SlotLogic:
-    def __init__(self, goal, items, checks, data, ignore_optional_logic=True):
+    def __init__(self, goal, items, data, ignore_optional_logic=True):
         self.BADGES = {"stone_badge","knuckle_badge","dynamo_badge","heat_badge","balance_badge","feather_badge","mind_badge","rain_badge"}
         self.GYMS = {"defeat_roxanne","defeat_brawly","defeat_wattson","defeat_flannery","defeat_norman","defeat_winona","defeat_tate_and_liza","defeat_juan"}
         self.HOSTED_ITEMS = {
@@ -118,7 +118,6 @@ class SlotLogic:
 
         self.goal = goal
         self.items = items
-        self.checks = checks # event flags
         self.ignore_optional_logic = ignore_optional_logic
 
         self._add_data_flags(data)
