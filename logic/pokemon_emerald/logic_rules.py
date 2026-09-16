@@ -533,7 +533,7 @@ class SlotLogic:
         return self.has("rt_119_grunts_on") or self.has("defeat_shelly")
 
 
-    def pass_route_124(self, direction):
+    def pass_route_124(self, direction=""):
         if direction == "left":
             return self.surf() and (self.has("wailmer_on") or self.has("defeat_matt"))
 
