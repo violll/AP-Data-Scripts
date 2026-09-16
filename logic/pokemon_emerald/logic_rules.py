@@ -267,27 +267,27 @@ class SlotLogic:
             name_entry_to_check = "hosted_item"
 
         event_data = False
-        for loc in self.check_dependencies.keys():
+        for loc in self.check_dependencies:
             for check in self.check_dependencies[loc][0]["children"]:
                 # edge case for Islands which has an extra layer of depth
                 if check["name"] == "Islands":
                     check_parent = check["children"]
-                    for check in check_parent:
-                        for c in check["sections"]:
+                    for check_child in check_parent:
+                        for c in check_child["sections"]:
                             if c.get(name_entry_to_check) == event_name:
                                 event_data = c
-                                location_data = check
+                                location_data = check_child
                                 access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
-                                
-                                return event_name, access_rules
 
-                for c in check["sections"]:
-                    if c.get(name_entry_to_check) == event_name:
-                        event_data = c
-                        location_data = check
-                        access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
-                        
-                        return event_name, access_rules
+                                return event_name, access_rules
+                else:
+                    for c in check["sections"]:
+                        if c.get(name_entry_to_check) == event_name:
+                            event_data = c
+                            location_data = check
+                            access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
+
+                            return event_name, access_rules
 
         raise ValueError(f"Event {event} could not be located")
 
