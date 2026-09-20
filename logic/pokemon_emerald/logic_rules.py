@@ -1,5 +1,5 @@
-'''
-Item & game progression logic adapted from Archipelago-Emerald-AP-Tracker by seto10987 
+"""
+Item & progression logic adapted from Archipelago-Emerald-AP-Tracker by seto10987
 Copyright (c) 2024 seto10987
 Licensed under the MIT License. The full MIT license text is included below:
 
@@ -22,16 +22,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 This file is a Python translation of the original logic
-'''
+"""
 
 import json
 import pathlib
+from collections import Counter
+from typing import Any
 
 
 class SlotLogic:
-    def __init__(self, goal, items, data, ignore_optional_logic=True):
-        self.BADGES = {"stone_badge","knuckle_badge","dynamo_badge","heat_badge","balance_badge","feather_badge","mind_badge","rain_badge"}
-        self.GYMS = {"defeat_roxanne","defeat_brawly","defeat_wattson","defeat_flannery","defeat_norman","defeat_winona","defeat_tate_and_liza","defeat_juan"}
+    def __init__(self, goal: dict[str, Any], items: Counter[str, int], data: dict, ignore_optional_logic: bool = True) -> None:
+        self.BADGES = {
+            "stone_badge",
+            "knuckle_badge",
+            "dynamo_badge",
+            "heat_badge",
+            "balance_badge",
+            "feather_badge",
+            "mind_badge",
+            "rain_badge",
+        }
+        self.GYMS = {
+            "defeat_roxanne",
+            "defeat_brawly",
+            "defeat_wattson",
+            "defeat_flannery",
+            "defeat_norman",
+            "defeat_winona",
+            "defeat_tate_and_liza",
+            "defeat_juan",
+        }
         self.HOSTED_ITEMS = {
             "acro_bike",
             "aurora_ticket",
@@ -104,8 +124,8 @@ class SlotLogic:
             "defeat_juan",
             "undo_regi_seal",
             "defeat_champion",
-            "defeat_steven"
-            }
+            "defeat_steven",
+        }
 
         self.check_dependencies = {}
         for resource in ["cities", "dungeons", "routes"]:
@@ -114,7 +134,8 @@ class SlotLogic:
                 self.check_dependencies[resource] = json.load(f)
 
         with open(pathlib.Path("resources/pokemon_emerald/events.json")) as f:
-            self.events = json.load(f)[:-1] #ignoring legendary hunt event - last entry in list
+            # ignoring legendary hunt event - last entry in list
+            self.events = json.load(f)[:-1]
 
         self.goal = goal
         self.items = items
@@ -156,7 +177,7 @@ class SlotLogic:
         self._add_event_logic()
 
     # internal functions
-    def _add_data_flags(self, data):
+    def _add_data_flags(self, data: dict[str, Any]) -> None:
         # free fly location
         free_fly_location = data["slot_data"]["free_fly_location_id"]
         self.items[f"free_fly_{free_fly_location}"] = 1
@@ -184,20 +205,22 @@ class SlotLogic:
         if itemfinder_req:
             self.items["itemfinder_off"] = 1
 
-        # roadblocks 
+        # roadblocks
         removed_roadblocks = data["slot_data"]["remove_roadblocks"]
         for roadblock in removed_roadblocks:
             if "Wailmer" in roadblock:
                 roadblock_formatted = "wailmer"
             else:
-                roadblock_formatted = roadblock.replace("Route", "rt")          \
-                                               .replace("Aqua ", "")            \
-                                               .replace("Magma ", "")           \
-                                               .replace("Hideout ", "")         \
-                                               .replace("Seafloor", "sea floor")\
-                                               .replace(" ", "_")               \
-                                               .lower()                         \
-                                 
+                roadblock_formatted = (
+                    roadblock.replace("Route", "rt")
+                    .replace("Aqua ", "")
+                    .replace("Magma ", "")
+                    .replace("Hideout ", "")
+                    .replace("Seafloor", "sea floor")
+                    .replace(" ", "_")
+                    .lower()
+                )
+
             self.items[f"{roadblock_formatted}_on"] = 1
 
         # route 115 boulders
@@ -215,8 +238,7 @@ class SlotLogic:
         if modify_118:
             self.items["route_118_rails_on"] = 1
 
-        
-    def _add_event_logic(self):
+    def _add_event_logic(self) -> None:
         # update self.items to include event logic
         for event in self.events:
             # find the event in self.check_dependencies
@@ -230,14 +252,23 @@ class SlotLogic:
             loc, event_location, event_name = event[1:].split("/")
             loc = loc.lower()
             name_entry_to_check = "name"
-            
+
         else:
-            event_name = f"{event["codes"]}_hosted"
+            event_name = f"{event['codes']}_hosted"
             event_location = event["name"].split("-")[0].strip()
 
-            if "Route" in event_location or event_location in ["Trick House", "Mt. Chimney", "Jagged Pass", "Weather Institute"]:
+            if "Route" in event_location or event_location in [
+                "Trick House",
+                "Mt. Chimney",
+                "Jagged Pass",
+                "Weather Institute",
+            ]:
                 loc = "routes"
-            elif "Town" in event_location or "City" in event_location or "Gym" in event_location:
+            elif (
+                "Town" in event_location
+                or "City" in event_location
+                or "Gym" in event_location
+            ):
                 loc = "cities"
             else:
                 loc = "dungeons"
@@ -248,17 +279,17 @@ class SlotLogic:
         for check in self.check_dependencies[loc][0]["children"]:
             if event_location in check["name"]:
                 for c in check["sections"]:
-                    if c.get(name_entry_to_check,"") == event_name:
+                    if c.get(name_entry_to_check, "") == event_name:
                         event_data = c
                         location_data = check
-                        access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
-                        
+                        access_rules = location_data.get("access_rules", []) \
+                                        + event_data.get("access_rules", [])
+
                         return event_name, access_rules
 
         raise ValueError(f"Event {event_name} at {event_location} could not be found")
 
-
-    def _get_event_data_from_name(self, event, untracked=False):
+    def _get_event_data_from_name(self, event: str, untracked: bool = False) -> tuple[str, list[str]]:
         if untracked:
             event_name = event.title()
             name_entry_to_check = "name"
@@ -277,7 +308,8 @@ class SlotLogic:
                             if c.get(name_entry_to_check) == event_name:
                                 event_data = c
                                 location_data = check_child
-                                access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
+                                access_rules = location_data.get("access_rules", []) \
+                                                + event_data.get("access_rules", [])
 
                                 return event_name, access_rules
                 else:
@@ -285,14 +317,15 @@ class SlotLogic:
                         if c.get(name_entry_to_check) == event_name:
                             event_data = c
                             location_data = check
-                            access_rules = location_data.get("access_rules", []) + event_data.get("access_rules", [])
+                            access_rules = location_data.get("access_rules", []) \
+                                            + event_data.get("access_rules", [])
 
                             return event_name, access_rules
 
         raise ValueError(f"Event {event} could not be located")
 
     # util functions
-    def clean_access_rules(self, rules):
+    def clean_access_rules(self, rules: list[str]) -> list:
         # ensure one rule per entry
         access_rules = []
         for rule in rules:
@@ -300,24 +333,25 @@ class SlotLogic:
 
         return access_rules
 
-
-    def is_in_logic(self, event_name, access_rules):
+    def is_in_logic(self, event_name, access_rules: list[str]) -> bool:
         access_rules = self.clean_access_rules(access_rules)
         # check if requirements are in logic
-        print(f"Checking {event_name}")
-            
-        for rule in access_rules:       
-            print(f"\t{rule}")
+        # print(f"Checking {event_name}")
+
+        for rule in access_rules:
+            # print(f"\t{rule}")
             if rule[0] == "[" and self.ignore_optional_logic:
                 continue
-            elif rule[0] == "[": 
+
+            if rule[0] == "[":
+                # remove brackets designating optional logic from rule
                 rule = rule[1:-1]
 
             if rule[0] == "$":
                 # run the appropriate function defined below
                 if not self._exec_method[rule]:
                     return False
-                
+
             elif rule[0] == "@":
                 # check whether untracked event is in logic
                 if not self.is_in_logic(*self._get_event_data(rule, untracked=True)):
@@ -326,110 +360,76 @@ class SlotLogic:
                 # check whether rule is a hosted item or event
                 is_event = f"{rule}" in [e["codes"] for e in self.events]
                 if is_event:
-                    if not (self.has(rule) or self.is_in_logic(*self._get_event_data_from_name(rule))):
+                    if not (self.has(rule)                                      \
+                            or self.is_in_logic(*self._get_event_data_from_name(rule))):
                         return False
-                else:
-                    if not self.has(rule):
-                        return False
+                elif not self.has(rule):
+                    return False
 
         return True
 
-    def has(self, item, amount=False):
+    def has(self, item: str, amount: int = 0) -> bool:
         # compare to amount if amount
-        if not amount: 
+        if not amount:
             return self.items.get(item, 0) > 0
-        else:
-            return self.items.get(item, 0) >= amount
 
-    def check_goal(self):
+        return self.items.get(item, 0) >= amount
+
+    def check_goal(self) -> bool:
         match self.goal["goal"]:
             case "norman":
-                if self.has_norman_req():
-                    # is go mode
-                    return True
-                else:
-                    # is not go mode
-                    # return progress to goal
-                    return False
+                return self.has_norman_req()
 
             case "champion":
-                if self.has_e4_req() and self.e4_access():
-                    # is go mode
-                    return True
-                else:
-                    # is not go mode
-                    # return progress to goal
-                    return False
-            
+                return self.has_e4_req() and self.e4_access()
+
             case "steven":
-                if self.has_steven_req() and self.e4_access():
-                    # is go mode
-                    return True
-                else:
-                    # is not go mode
-                    # return progress to goal
-                    return False
+                return self.has_steven_req() and self.e4_access()
 
             case "legendary_hunt":
-                if self.has_legendary_req():
-                    # is go mode
-                    return True
-                else:
-                    # is not go mode
-                    # return progress to goal
-                    return False
+                return self.has_legendary_req()
 
     # access functions
-    def free_fly(self, location):
+    def free_fly(self, location: str) -> bool:
         return self.items[f"free_fly_{location}"] == 1 and self.fly()
 
-
-    def cut(self):
+    def cut(self) -> bool:
         return self.has("hm01_cut") and self.has("stone_badge")
 
+    def fly(self) -> bool:
+        return self.has("hm02_fly") \
+                and (self.has("feather_badge_on") or self.has("feather_badge"))
 
-    def fly(self):
-        return self.has("hm02_fly") and (self.has("feather_badge_on") or self.has("feather_badge"))
-
-
-    def surf(self):
+    def surf(self) -> bool:
         return self.has("hm03_surf") and self.has("balance_badge")
 
-
-    def strength(self):
+    def strength(self) -> bool:
         return self.has("hm04_strength") and self.has("heat_badge")
 
-
-    def flash(self, dungeon):
+    def flash(self, dungeon: str) -> bool:
         if self.has("flash_both") or self.has(f"flash_{dungeon}") or dungeon == "tomb":
             return self.has("hm05_flash") and self.has("knuckle_badge")
         return True
 
-
-    def rock_smash(self):
+    def rock_smash(self) -> bool:
         return self.has("hm06_rock_smash") and self.has("dynamo_badge")
 
-
-    def waterfall(self):
+    def waterfall(self) -> bool:
         return self.has("hm07_waterfall") and self.has("rain_badge")
 
-
-    def dive(self):
+    def dive(self) -> bool:
         return self.has("hm08_dive") and self.has("mind_badge")
 
-
-    def bike(self):
+    def bike(self) -> bool:
         return self.has("acro_bike") or self.has("mach_bike")
 
-
-    def hidden(self):
+    def hidden(self) -> bool:
         return self.has("itemfinder") or not self.has("require_itemfinder")
 
-
-    def has_norman_req(self):
+    def has_norman_req(self) -> bool:
         if self.goal["goal"] != "norman":
             return False
-        
+
         req_count = 0
         req = self.goal["norman_count"]
         req_item = {}
@@ -445,13 +445,12 @@ class SlotLogic:
 
         return req_count >= req
 
-
-    def has_e4_req(self):
+    def has_e4_req(self) -> bool:
         req_count = 0
         req = self.goal.get("elite_four_count", -1)
         if req == -1:
             return False
-        
+
         req_item = {}
 
         if self.goal["elite_four_requirement"] == "badges":
@@ -465,203 +464,193 @@ class SlotLogic:
 
         return req_count >= req
 
-    
-    def has_steven_req(self):
+    def has_steven_req(self) -> bool:
         return self.has_e4_req()
 
-
-    def has_steven_logic(self):
-        return self.surf() and self.waterfall() and self.fallarbor_access() \
+    def has_steven_logic(self) -> bool:
+        return (
+            self.surf()
+            and self.waterfall()
+            and self.fallarbor_access()
             and self.e4_access()
+        )
 
-
-    def has_legendary_req(self):
+    def has_legendary_req(self) -> bool:
         legendary_count = self.goal["legendary_hunt_count"]
         req_count = len(self.has_legendary_logic())
 
         return req_count >= legendary_count
 
-
-    def has_legendary_logic(self):
+    def has_legendary_logic(self) -> list[str]:
         legendary_event = "catch" if self.goal["legendary_hunt_catch"] else "defeat"
         valid_encounters = self.goal["allowed_legendary_hunt_encounters"]
 
-        legends_in_logic = []
-        for encounter in valid_encounters:
-            if self.is_in_logic(*self._get_event_data_from_name(f"{legendary_event} {encounter}", untracked=True)):
-                legends_in_logic.append(encounter)
+        return [encounter for encounter in valid_encounters
+                if self.is_in_logic(*self._get_event_data_from_name(
+                        f"{legendary_event} {encounter}", untracked=True))]
 
-        return legends_in_logic
-
-
-    def pass_route_110(self):
+    def pass_route_110(self) -> bool:
         return self.has("rt_110_grunts_on") or self.has("rescue_stern") or self.bike()
 
-
-    def pass_cable_car(self):
+    def pass_cable_car(self) -> bool:
         return self.has("rt_112_grunts_on") or self.has("magma_steals_meteorite")
 
-
-    def route_115_boulders(self):
+    def route_115_boulders(self) -> bool:
         return self.has("route_115_boulders_off") or self.strength()
 
+    def pass_route_115(self) -> bool:
+        return (self.surf() and self.route_115_boulders()) or (
+            self.has("route_115_bumpy_slope_on") and self.has("acro_bike")
+        )
 
-    def pass_route_115(self):
-        return (self.surf() and self.route_115_boulders()) or (self.has("route_115_bumpy_slope_on") and self.has("acro_bike"))
-
-
-    def pass_route_118(self):
+    def pass_route_118(self) -> bool:
         if self.has("route_118_rails_on"):
             return self.has("acro_bike")
 
         return self.surf()
 
-
-    def pass_route_119(self):
+    def pass_route_119(self) -> bool:
         return self.has("rt_119_grunts_on") or self.has("defeat_shelly")
 
-
-    def pass_route_124(self, direction=""):
+    def pass_route_124(self, direction: str = "") -> bool:
         if direction == "left":
             return self.surf() and (self.has("wailmer_on") or self.has("defeat_matt"))
 
         return self.surf()
 
-
-    def dewford_access(self):
+    def dewford_access(self) -> bool:
         return self.has("talk_mr_stone") or self.surf()
 
+    def slateport_access(self) -> bool:
+        return self.free_fly("slateport")                                       \
+                or self.surf()                                                  \
+                or (self.dewford_access() and self.has("deliver_letter"))       \
+                or (self.free_fly("mauville") and self.pass_route_110())        \
+                or (self.free_fly("verdanturf") and self.pass_route_110())      \
+                or (self.rock_smash() and self.pass_route_110())                \
+                or (self.free_fly("fortree") and (self.has("ss_ticket")         \
+                    or (self.pass_route_119() and self.pass_route_118()         \
+                        and self.pass_route_110())))                            \
+                or (self.free_fly("lilycove") and (self.has("ss_ticket")        \
+                    or (self.cut() and self.pass_route_119()                    \
+                        and self.pass_route_118() and self.pass_route_110())))
 
-    def slateport_access(self):
-        return self.free_fly("slateport")                       \
-                or self.surf()                                       \
-                or (self.dewford_access() and self.has("deliver_letter")) \
-                or (self.free_fly("mauville") and self.pass_route_110())  \
-                or (self.free_fly("verdanturf") and self.pass_route_110()) \
-                or (self.rock_smash() and self.pass_route_110())              \
-                or (self.free_fly("fortree") and (self.has("ss_ticket") or (self.pass_route_119() and self.pass_route_118() and self.pass_route_110()))) \
-                or (self.free_fly("lilycove") and (self.has("ss_ticket") or (self.cut() and self.pass_route_119() and self.pass_route_118() and self.pass_route_110())))
-
-
-    def mauville_access(self):
+    def mauville_access(self) -> bool:
         return self.free_fly("mauville") \
                 or self.free_fly("verdanturf") \
                 or self.rock_smash() \
                 or self.surf() \
-                or (self.slateport_access() and self.pass_route_110()) \
-                or (self.free_fly("fortree") and self.pass_route_119() and self.pass_route_118()) \
-                or (self.free_fly("lilycove") and self.cut() and self.pass_route_119() and self.pass_route_118())
+                or (self.slateport_access() and self.pass_route_110())      \
+                or (self.free_fly("fortree") and self.pass_route_119()      \
+                    and self.pass_route_118())                              \
+                or (self.free_fly("lilycove") and self.cut()                \
+                    and self.pass_route_119() and self.pass_route_118())
 
-
-    def fallarbor_access(self):
+    def fallarbor_access(self) -> bool:
         return self.free_fly("fallarbor") \
                 or self.free_fly("lavaridge") \
                 or self.pass_route_115() \
                 or self.rock_smash() \
 
-
-    def mt_chimney_access(self):
-        return (self.fallarbor_access() and self.pass_cable_car())    \
+    def mt_chimney_access(self) -> bool:
+        return (self.fallarbor_access() and self.pass_cable_car())          \
                 or (self.free_fly("lavaridge") and self.has("acro_bike"))
 
+    def lavaridge_access(self) -> bool:
+        return self.free_fly("lavaridge")                               \
+                or (self.fallarbor_access() and self.pass_cable_car()   \
+                    and self.has("defeat_maxie_mt_chimney"))
 
-    def lavaridge_access(self):
-        return self.free_fly("lavaridge") \
-                or (self.fallarbor_access() and self.pass_cable_car() and self.has("defeat_maxie_mt_chimney"))
-
-
-    def route_119_access(self):
-        return (self.mauville_access() and self.pass_route_118()) \
-                or (self.free_fly("fortree") and (self.pass_route_119() or self.surf())) \
-                or (self.free_fly("lilycove") and (self.surf() or (self.cut() and self.pass_route_119()))) \
-                or (self.slateport_access() and self.has("ss_ticket") and (self.surf() or (self.cut() and self.pass_route_119()))) \
-                or (self.free_fly("mossdeep") and self.pass_route_124()) \
-                or (self.free_fly("sootopolis") and self.dive() and self.pass_route_124()) \
+    def route_119_access(self) -> bool:
+        return (self.mauville_access() and self.pass_route_118())                   \
+                or (self.free_fly("fortree")                                        \
+                    and (self.pass_route_119() or self.surf()))                     \
+                or (self.free_fly("lilycove")                                       \
+                    and (self.surf() or (self.cut() and self.pass_route_119())))    \
+                or (self.slateport_access()                                         \
+                    and self.has("ss_ticket")                                       \
+                    and (self.surf() or (self.cut() and self.pass_route_119())))    \
+                or (self.free_fly("mossdeep") and self.pass_route_124())            \
+                or (self.free_fly("sootopolis") and self.dive()                     \
+                    and self.pass_route_124())                                      \
                 or (self.free_fly("ever_grande") and self.pass_route_124())
 
-
-    def fortree_access(self):
+    def fortree_access(self) -> bool:
         return self.free_fly("fortree") \
-                or (self.route_119_access() and self.pass_route_119()) \
-                or (self.free_fly("lilycove") and self.cut()) \
-                or (self.slateport_access() and self.has("ss_ticket") and self.cut()) \
-                or (self.free_fly("mossdeep") and self.pass_route_124() and self.cut()) \
-                or (self.free_fly("sootopolis") and self.dive() and self.pass_route_124() and self.cut()) \
-                or (self.free_fly("ever_grande") and self.pass_route_124() and self.cut())
+                or (self.route_119_access() and self.pass_route_119())              \
+                or (self.free_fly("lilycove") and self.cut())                       \
+                or (self.slateport_access() and self.has("ss_ticket")               \
+                    and self.cut())                                                 \
+                or (self.free_fly("mossdeep") and self.pass_route_124()             \
+                    and self.cut())                                                 \
+                or (self.free_fly("sootopolis") and self.dive()                     \
+                    and self.pass_route_124() and self.cut())                       \
+                or (self.free_fly("ever_grande") and self.pass_route_124()          \
+                    and self.cut())
 
-
-    def lilycove_access(self):
-        return self.free_fly("lilycove") \
-                or self.fortree_access() \
-                or (self.slateport_access() and self.has("ss_ticket")) \
-                or (self.free_fly("mossdeep") and self.pass_route_124()) \
-                or (self.free_fly("sootopolis") and self.dive() and self.pass_route_124()) \
+    def lilycove_access(self) -> bool:
+        return self.free_fly("lilycove")                                    \
+                or self.fortree_access()                                    \
+                or (self.slateport_access() and self.has("ss_ticket"))      \
+                or (self.free_fly("mossdeep") and self.pass_route_124())    \
+                or (self.free_fly("sootopolis") and self.dive()             \
+                    and self.pass_route_124())                              \
                 or (self.free_fly("ever_grande") and self.pass_route_124())
 
+    def aqua_hideout_access(self) -> bool:
+        return self.lilycove_access() and self.surf()                       \
+                and (self.has("hideout_grunts_on") or self.has("aqua_steals_submarine"))
 
-    def aqua_hideout_access(self):
-        return self.lilycove_access() and self.surf() and (self.has("hideout_grunts_on") or self.has("aqua_steals_submarine"))
-
-
-    def route_124_access(self):
-        return (self.lilycove_access() and self.pass_route_124("left")) \
-                or (self.free_fly("mossdeep") and self.surf()) \
+    def route_124_access(self) -> bool:
+        return (self.lilycove_access() and self.pass_route_124("left"))          \
+                or (self.free_fly("mossdeep") and self.surf())                   \
                 or (self.free_fly("sootopolis") and self.dive() and self.surf()) \
                 or (self.free_fly("ever_grande") and self.surf())
 
-
-    def mossdeep_access(self):
+    def mossdeep_access(self) -> bool:
         return self.free_fly("mossdeep") or self.route_124_access()
 
-
-    def sootopolis_access(self):
+    def sootopolis_access(self) -> bool:
         return self.free_fly("sootopolis") or (self.route_124_access() and self.dive())
 
+    def seafloor_cavern_access(self) -> bool:
+        return self.route_124_access() and self.dive()                                 \
+                and (self.has("sea_floor_grunts_on") or self.has("steven_gives_dive")) \
+                and self.rock_smash() and self.strength()
 
-    def seafloor_cavern_access(self):
-        return self.route_124_access() and self.dive() and (self.has("sea_floor_grunts_on") or self.has("steven_gives_dive")) and self.rock_smash() and self.strength()
-
-
-    def sealed_chamber_access(self):
+    def sealed_chamber_access(self) -> bool:
         return self.route_124_access() and self.dive()
 
-
-    def desert_ruins_access(self):
+    def desert_ruins_access(self) -> bool:
         return self.fallarbor_access() and self.has("go_goggles")
 
-
-    def island_cave_access(self):
+    def island_cave_access(self) -> bool:
         return self.surf()
 
-
-    def ancient_tomb_access(self):
+    def ancient_tomb_access(self) -> bool:
         return self.fortree_access()
 
+    def victory_road_access(self) -> bool:
+        return self.free_fly("ever_grande")                         \
+                or (self.route_124_access() and self.waterfall())
 
-    def victory_road_access(self):
-        return self.free_fly("ever_grande") or (self.route_124_access() and self.waterfall())
+    def e4_access(self) -> bool:
+        return self.victory_road_access() and self.rock_smash() and self.strength() \
+                and self.surf() and self.has_e4_req()
 
+    def battle_frontier_access(self) -> bool:
+        return (self.slateport_access() or self.lilycove_access())  \
+                and self.has("ss_ticket")
 
-    def e4_access(self):
-        return self.victory_road_access() and self.rock_smash() and self.strength() and self.surf() and self.has_e4_req()
-
-
-    def battle_frontier_access(self):
-        return (self.slateport_access() or self.lilycove_access()) and self.has("ss_ticket")
-
-
-    def terra_cave_access(self):
+    def terra_cave_access(self) -> bool:
         return self.has("defeat_champion") and self.has("defeat_shelly")
 
-
-    def marine_cave_access(self):
+    def marine_cave_access(self) -> bool:
         return self.dive() and self.has("defeat_champion") and self.has("defeat_shelly")
 
-
     # visibility defs
-    def legary_hunt_defeat(self):
+    def legary_hunt_defeat(self) -> bool:
         return self.has("goal_legary_hunt") and self.has("legary_hunt_req_defeat")
 
-
-    def legary_hunt_catch(self):
+    def legary_hunt_catch(self) -> bool:
         return self.has("goal_legary_hunt") and self.has("legary_hunt_req_catch")

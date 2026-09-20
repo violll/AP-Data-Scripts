@@ -3,6 +3,7 @@ import enum
 import json
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 from logic.pokemon_emerald.logic_rules import SlotLogic
 
@@ -23,7 +24,7 @@ class ItemFlag(enum.IntEnum):
 
 
 class LogicRouter:
-    def __init__(self, args):
+    def __init__(self, args) -> None:
         self.args = args
 
         # validate and load required data
@@ -73,13 +74,13 @@ class LogicRouter:
 
         return goal_data, slot_data, game_data, slot_config
 
-    def _is_slot_goaled(self, player_status):
+    def _is_slot_goaled(self, player_status) -> bool:
         return player_status["status"] == ClientStatus.CLIENT_GOAL
 
-    def _get_events(self, checks):
+    def _get_events(self, checks) -> list[str]:
         return [self.location_id_to_name[str(c)][0] for c in checks["locations"]] # NOTE ignoring additional items in list because they are associated with the same id
 
-    def _get_slot_config(self, slot):
+    def _get_slot_config(self, slot) -> dict[str, Any]:
         # TODO implement data transformations
         config = self.slot_config[slot]
         config["slot_data"]["free_fly_location_id"] = self.setting_id_to_name["SLOT_CODES"]["free_fly_location_id"]["mapping"][str(config["slot_data"]["free_fly_location_id"])]
@@ -88,19 +89,20 @@ class LogicRouter:
     def _get_slot_items(self, slot, flag):
         return Counter([self.item_id_to_name[str(item[0])] for item in slot["items"] if item[-1] == flag])
 
-    def _check_logic(self, goal, items, metadata): 
+    def _check_logic(self, goal, items, metadata):
         sl = SlotLogic(goal, items, metadata)
         goal_status = sl.check_goal()
-        print(sl.goal["player"], sl.goal["goal"], goal_status)
+        if goal_status:
+            print(sl.goal["player"], sl.goal["goal"])
 
         return goal_status
 
     def _check_goal_status(self):
         goal_status = {}
 
-        for slot in range(self.n_slots): 
+        for slot in range(self.n_slots):
             goal = self.goal_data[slot]
-               
+
             # filter out completed game
             if self._is_slot_goaled(self.slot_data["player_status"][slot]):
                 continue
@@ -110,13 +112,12 @@ class LogicRouter:
 
             # get config
             config = self._get_slot_config(slot)
-    
+
             # check logic to determine whether goal is reachable
             res = self._check_logic(goal, items, config)
             goal_status[slot] = res
 
         return goal_status
-            
 
 
 if __name__ == "__main__":
@@ -132,4 +133,4 @@ if __name__ == "__main__":
 
 
     # init class
-    lr = LogicRouter(args)  
+    lr = LogicRouter(args)
