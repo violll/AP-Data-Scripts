@@ -32,11 +32,11 @@ class LogicRouter:
         self.n_slots = len(self.slot_data["player_status"])
 
         # load mapping dicts
-        with open("resources/pokemon_emerald/item_mapping.json") as f:
+        with open(Path("resources/pokemon_emerald/item_mapping.json")) as f:
             self.item_id_to_name = json.load(f)
-        with open("resources/pokemon_emerald/setting_mapping.json") as f:
+        with open(Path("resources/pokemon_emerald/setting_mapping.json")) as f:
             self.setting_id_to_name = json.load(f)
-        with open("resources/pokemon_emerald/location_mapping.json") as f:
+        with open(Path("resources/pokemon_emerald/location_mapping.json")) as f:
             self.location_id_to_name = json.load(f)
 
         # route logic for each game
