@@ -52,13 +52,13 @@ class LogicRouter:
         goal_data_path = self.args.data_folder / "goal_data.json"
         slot_data_path = self.args.data_folder / "tracker.json"
         slot_config_path = self.args.data_folder / "slot_data_tracker.json"
-        game_data_path = self.args.data_folder / "room_datapackages.json"
+        # hints_processed_path = self.args.data_folder / "hints_processed.json"
 
         # validate paths
         if not self.args.data_folder.exists():
             parser.error(f"Data folder={self.args.data_folder} does not exist")
 
-        if not (slot_data_path.is_file() and game_data_path.is_file() and slot_config_path.is_file()):
+        if not (slot_data_path.is_file() and slot_config_path.is_file()):
             # TODO is this the correct arg type?
             raise ValueError("Room data does not exist. Run get_room_data.py to generate it")
 
@@ -71,9 +71,6 @@ class LogicRouter:
 
         with open(slot_data_path) as f:
             self.slot_data = json.load(f)
-
-        with open(game_data_path) as f:
-            self.game_data = json.load(f)
 
         with open(slot_config_path) as f:
             self.slot_config = json.load(f)
