@@ -39,8 +39,14 @@ class LogicRouter:
         with open(Path("resources/pokemon_emerald/location_mapping.json")) as f:
             self.location_id_to_name = json.load(f)
 
+        self._clean_slot_configs()
+
         # route logic for each game
         self.goal_status = self._check_goal_status()
+
+    def _clean_slot_configs(self):
+        for config in self.slot_config:
+            config["slot_data"]["free_fly_location_id"] = self.setting_id_to_name["SLOT_CODES"]["free_fly_location_id"]["mapping"][str(config["slot_data"]["free_fly_location_id"])]
 
     def _validate_required_data(self) -> None:
         goal_data_path = self.args.data_folder / "goal_data.json"
@@ -78,12 +84,6 @@ class LogicRouter:
     def _get_events(self, checks) -> list[str]:
         return [self.location_id_to_name[str(c)][0] for c in checks["locations"]] # NOTE ignoring additional items in list because they are associated with the same id
 
-    def _get_slot_config(self, slot) -> dict[str, Any]:
-        # TODO implement data transformations
-        config = self.slot_config[slot]
-        config["slot_data"]["free_fly_location_id"] = self.setting_id_to_name["SLOT_CODES"]["free_fly_location_id"]["mapping"][str(config["slot_data"]["free_fly_location_id"])]
-        return config
-
     def _get_slot_items(self, slot, flag):
         return Counter([self.item_id_to_name[str(item[0])] for item in slot["items"] if item[-1] == flag])
 
@@ -109,7 +109,7 @@ class LogicRouter:
             items = self._get_slot_items(self.slot_data["player_items_received"][slot], ItemFlag.ITEM_LOGIC)
 
             # get config
-            config = self._get_slot_config(slot)
+            config = self.slot_config[slot]
 
             # check logic to determine whether goal is reachable
             res = self._check_logic(goal, items, config)
