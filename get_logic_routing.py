@@ -28,7 +28,7 @@ class LogicRouter:
         self.args = args
 
         # validate and load required data
-        self.goal_data, self.slot_data, self.game_data, self.slot_config = self._validate_required_data()
+        self._validate_required_data()
         self.n_slots = len(self.slot_data["player_status"])
 
         # load mapping dicts
@@ -42,7 +42,7 @@ class LogicRouter:
         # route logic for each game
         self.goal_status = self._check_goal_status()
 
-    def _validate_required_data(self):
+    def _validate_required_data(self) -> None:
         goal_data_path = self.args.data_folder / "goal_data.json"
         slot_data_path = self.args.data_folder / "tracker.json"
         slot_config_path = self.args.data_folder / "slot_data_tracker.json"
@@ -54,25 +54,23 @@ class LogicRouter:
 
         if not (slot_data_path.is_file() and game_data_path.is_file() and slot_config_path.is_file()):
             # TODO is this the correct arg type?
-            raise ValueError("Room data does not exist. Run get-room-data.py to generate it")
+            raise ValueError("Room data does not exist. Run get_room_data.py to generate it")
 
         if not goal_data_path.is_file():
-            raise ValueError(f"Goal data={goal_data_path} does not exist. Run create-goal-data.py to generate it")
+            raise ValueError(f"Goal data={goal_data_path} does not exist. Run create_goal_data.py to generate it")
 
         # load data
         with open(goal_data_path) as f:
-            goal_data = json.load(f)
+            self.goal_data = json.load(f)
 
         with open(slot_data_path) as f:
-            slot_data = json.load(f)
+            self.slot_data = json.load(f)
 
         with open(game_data_path) as f:
-            game_data = json.load(f)
+            self.game_data = json.load(f)
 
         with open(slot_config_path) as f:
-            slot_config = json.load(f)
-
-        return goal_data, slot_data, game_data, slot_config
+            self.slot_config = json.load(f)
 
     def _is_slot_goaled(self, player_status) -> bool:
         return player_status["status"] == ClientStatus.CLIENT_GOAL
