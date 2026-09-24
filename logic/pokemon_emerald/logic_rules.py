@@ -142,35 +142,44 @@ class SlotLogic:
         self.ignore_optional_logic = ignore_optional_logic
 
         self._exec_method = {
-            "$surf": self.surf(),
-            "$waterfall": self.waterfall(),
-            "$strength": self.strength(),
-            "[$flash|cave]": self.flash("cave"),
-            "[$flash|road]": self.flash("road"),
+            "$cut": (self.cut,),
+            "$fly": (self.fly,),
+            "$surf": (self.surf,),
+            "$waterfall": (self.waterfall,),
+            "$strength": (self.strength,),
+            "[$flash|cave]": (self.flash, "cave"),
+            "[$flash|road]": (self.flash, "road"),
+            "$rock_smash": (self.rock_smash,),
+            "$dive": (self.dive,),
 
             # location | goal access logic
-            "$dewford_access": self.dewford_access(),
-            "$slateport_access": self.slateport_access(),
-            "$mauville_access": self.mauville_access(),
-            "$fallarbor_access": self.fallarbor_access(),
-            "$mt_chimney_access": self.mt_chimney_access(),
-            "$lavaridge_access": self.lavaridge_access(),
-            "$lilycove_access": self.lilycove_access(),
-            "$has_norman_req": self.has_norman_req(),
-            "$route_119_access": self.route_119_access(),
-            "$route_124_access": self.route_124_access(),
-            "$fortree_access": self.fortree_access(),
-            "$aqua_hideout_access": self.aqua_hideout_access(),
-            "$mossdeep_access": self.mossdeep_access(),
-            "$seafloor_cavern_access": self.seafloor_cavern_access(),
-            "$sootopolis_access": self.sootopolis_access(),
-            "$sealed_chamber_access": self.sealed_chamber_access(),
-            "$e4_access": self.e4_access(),
-            "$terra_cave_access": self.terra_cave_access(),
-            "$island_cave_access": self.island_cave_access(),
-            "$desert_ruins_access": self.desert_ruins_access(),
-            "$ancient_tomb_access": self.ancient_tomb_access(),
-            "$marine_cave_access": self.marine_cave_access()
+            "$dewford_access": (self.dewford_access,),
+            "$slateport_access": (self.slateport_access,),
+            "$mauville_access": (self.mauville_access,),
+            "$fallarbor_access": (self.fallarbor_access,),
+            "$mt_chimney_access": (self.mt_chimney_access,),
+            "$lavaridge_access": (self.lavaridge_access,),
+            "$lilycove_access": (self.lilycove_access,),
+            "$has_norman_req": (self.has_norman_req,),
+            "$pass_route_110": (self.pass_route_110,),
+            "$pass_cable_car": (self.pass_cable_car,),
+            "$route_115_boulders": (self.route_115_boulders,),
+            "$pass_route_115": (self.pass_route_115,),
+            "$pass_route_118": (self.pass_route_118,),
+            "$route_119_access": (self.route_119_access,),
+            "$route_124_access": (self.route_124_access,),
+            "$fortree_access": (self.fortree_access,),
+            "$aqua_hideout_access": (self.aqua_hideout_access,),
+            "$mossdeep_access": (self.mossdeep_access,),
+            "$seafloor_cavern_access": (self.seafloor_cavern_access,),
+            "$sootopolis_access": (self.sootopolis_access,),
+            "$sealed_chamber_access": (self.sealed_chamber_access,),
+            "$e4_access": (self.e4_access,),
+            "$terra_cave_access": (self.terra_cave_access,),
+            "$island_cave_access": (self.island_cave_access,),
+            "$desert_ruins_access": (self.desert_ruins_access,),
+            "$ancient_tomb_access": (self.ancient_tomb_access,),
+            "$marine_cave_access": (self.marine_cave_access,)
             }
 
         self._add_data_flags(data)
@@ -349,7 +358,14 @@ class SlotLogic:
 
             if rule[0] == "$":
                 # run the appropriate function defined below
-                if not self._exec_method[rule]:
+                dispatch = self._exec_method[rule]
+                if len(dispatch) == 1:
+                    result = dispatch[0]()
+                else:
+                    handler, arg = dispatch
+                    result = handler(arg)
+
+                if not result:
                     return False
 
             elif rule[0] == "@":
